@@ -9,6 +9,7 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +34,34 @@ public class KafkaSparkConsumer {
                 LocationStrategies.PreferConsistent(),
                 ConsumerStrategies.Subscribe(java.util.Collections.singleton("btc-transactions"), kafkaParams)
         ).map(record -> record.value().toString());
+
+        messages.foreachRDD(rdd -> {
+            rdd.foreach(msg -> {
+                try {
+                    JSONObject json = new JSONObject(msg);
+
+                    String walletId = json.getString("walletId");
+
+                    double amount;
+                    try {
+                        amount = json.getDouble("amount");
+                    } catch (Exception e) {
+                        amount = 0.0;
+                    }
+
+                    long timestamp;
+                    try {
+                        timestamp = json.getLong("timestamp");
+                    } catch (Exception e) {
+                        timestamp = System.currentTimeMillis();
+                    }
+
+                    System.out.println("Cleaned -> walletId: " + walletId + ", amount: " + amount + ", timestamp: " + timestamp);
+                } catch (Exception ex) {
+                    System.out.println("Skipping invalid JSON: " + msg);
+                }
+            });
+        });
 
         messages.print();
 
