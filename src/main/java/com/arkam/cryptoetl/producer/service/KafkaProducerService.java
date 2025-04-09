@@ -21,11 +21,12 @@ public class KafkaProducerService {
     public void sendFakeTransaction() {
         String walletId = "wallet-" + random.nextInt(1000);
 
-        double amount = random.nextDouble() * 10;
-
         // Create the transaction string
-        String transactionMessage = String.format("{\"walletId\": \"%s\", \"amount\": %.6f, \"timestamp\": %d}",
-                walletId, amount, System.currentTimeMillis());
+        // Knowingly send some faulty data for spark to do the filtering
+        String transactionMessage = String.format("{\"walletId\": \"%s\", \"amount\": %s, \"timestamp\": \"%s\"}",
+                walletId,
+                random.nextBoolean() ? random.nextDouble() * 10 : "\"INVALID_AMOUNT\"",
+                random.nextBoolean() ? System.currentTimeMillis() : "\"BAD_TIMESTAMP\"");
 
         // Send to Kafka topic
         kafkaTemplate.send(TOPIC, transactionMessage);
