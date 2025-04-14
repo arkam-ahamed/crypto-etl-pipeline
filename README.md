@@ -1,2 +1,16 @@
-# crypto-etl-pipeline
-A real-time Bitcoin transaction generator pipeline built with Apache Kafka, Apache Spark, and Elasticsearch. This project simulates and processes Bitcoin dummy transaction data, performs data transformations using Spark, and stores the cleaned data in Elasticsearch for visualization via Kibana.
+# 💸 Crypto ETL Pipeline
+
+A real-time Bitcoin transaction generator pipeline built using **Apache Kafka**, **Apache Spark**, and **Elasticsearch**. It simulates dummy Bitcoin transaction data, cleans it with Apache Spark, and stores valid transactions in Elasticsearch.
+
+## 🚀 Architecture
+
+Kafka Producer (Spring Boot) → Kafka Topic → Spark Structured Streaming → Elasticsearch
+
+## 📦 Spin It Up (Easy Setup)
+
+Make sure you have **Docker** and **Docker Compose** installed.
+
+```bash
+git clone https://github.com/arkam-ahamed/crypto-etl-pipeline.git
+cd crypto-etl-pipeline
+docker-compose up --build
