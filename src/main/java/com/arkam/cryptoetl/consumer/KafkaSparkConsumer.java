@@ -11,6 +11,10 @@ import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 import org.json.JSONObject;
 
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,27 +50,62 @@ public class KafkaSparkConsumer {
                     try {
                         amount = json.getDouble("amount");
                     } catch (Exception e) {
-                        amount = 0.0;
+                        System.out.println("Invalid amount, skipping: " + msg);
+                        return;
                     }
 
                     long timestamp;
                     try {
                         timestamp = json.getLong("timestamp");
                     } catch (Exception e) {
-                        timestamp = System.currentTimeMillis();
+                        System.out.println("Invalid timestamp, skipping: " + msg);
+                        return;
                     }
 
-                    System.out.println("Cleaned -> walletId: " + walletId + ", amount: " + amount + ", timestamp: " + timestamp);
+                    // Build JSON object for Elasticsearch
+                    JSONObject cleanJson = new JSONObject();
+                    cleanJson.put("walletId", walletId);
+                    cleanJson.put("amount", amount);
+                    cleanJson.put("timestamp", timestamp);
+
+                    // Send to Elasticsearch
+                    sendToElasticsearch(cleanJson.toString());
+
                 } catch (Exception ex) {
                     System.out.println("Skipping invalid JSON: " + msg);
                 }
             });
         });
 
-        messages.print();
-
         // Start the streaming context
         jssc.start();
         jssc.awaitTermination();
+    }
+
+    private static void sendToElasticsearch(String jsonPayload) {
+        try {
+            URL url = new URL("http://localhost:9200/btc-transactions/_doc");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setDoOutput(true);
+            conn.setRequestProperty("Content-Type", "application/json");
+
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = jsonPayload.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
+            }
+
+            int code = conn.getResponseCode();
+            System.out.println("🔥 Received message: " + jsonPayload);
+            if (code == 201 || code == 200) {
+                System.out.println("✅ Sent to Elasticsearch: " + jsonPayload);
+            } else {
+                System.out.println("❌ Failed to send to Elasticsearch. Code: " + code);
+            }
+
+            conn.disconnect();
+        } catch (Exception e) {
+            System.out.println("Exception sending to Elasticsearch: " + e.getMessage());
+        }
     }
 }
