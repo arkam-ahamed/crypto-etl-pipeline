@@ -1,10 +1,10 @@
 # 💸 Crypto ETL Pipeline
 
-A real-time Bitcoin transaction generator pipeline built using **Apache Kafka**, **Apache Spark**, and **Elasticsearch**. It simulates dummy Bitcoin transaction data, cleans it with Apache Spark, and stores valid transactions in Elasticsearch.
+A real-time Bitcoin transaction generator pipeline built using **Apache Kafka**, **Apache Spark**, and **Elasticsearch**. It simulates dummy Bitcoin transaction data, cleans it with Apache Spark, and stores valid transactions in Elasticsearch and visualizes using Kibana
 
 ## 🚀 Architecture
 
-Kafka Producer (Spring Boot) → Kafka Topic → Spark Structured Streaming → Elasticsearch
+Kafka Producer (Spring Boot) → Kafka Topic → Spark Structured Streaming → Elasticsearch -> Kibana
 
 ## 📦 Spin It Up (Easy Setup)
 
